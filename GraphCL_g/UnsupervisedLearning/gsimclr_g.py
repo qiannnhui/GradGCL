@@ -28,6 +28,7 @@ import pdb
 #os.environ["CUDA_VISIBLE_DEVICES"] = '0,1,2,3'
 import os
 from multiprocessing import cpu_count
+from check_dim_collapse import check_dimensional_collapse
 
 
 class GcnInfomax(nn.Module):
@@ -229,9 +230,6 @@ def my(args, a):
 
                 x_aug = model(data_aug.x, data_aug.edge_index, data_aug.batch, data_aug.num_graphs)
 
-                # print(x)
-                # print(x_aug)
-                #loss = model.loss_cal(x, x_aug)
                 lossf = model.loss_cal(x, x_aug)
                 if a == 0.0:
                     loss = lossf
@@ -244,14 +242,12 @@ def my(args, a):
                 loss_all += loss.item() * data.num_graphs
                 loss.backward()
                 optimizer.step()
-                # print('batch')
-            #if epoch % 1 == 0:
-            #    print('Epoch {}, Loss {}'.format(epoch, loss_all / len(dataloader)))
 
             if epoch % args.log_interval == 0:
                 model.eval()
                 emb, y = model.encoder.get_embeddings(dataloader_eval)
                 acc_val, acc = evaluate_embedding(emb, y)
+                check_dimensional_collapse(emb)
                 if acc > best_acc:
                     best_acc = acc
                     best_epoch = epoch
@@ -259,6 +255,10 @@ def my(args, a):
             pbar.set_postfix({'loss': loss_all})
             pbar.update()
         print(best_acc, best_epoch)
+    if not os.path.exists("./ckpts"):
+        os.makedirs("./ckpts")
+    
+    torch.save(model, f"./ckpts/{args.DS}_gradgcl.ckpt")
     return best_acc
 
 if __name__ == '__main__':
@@ -269,11 +269,11 @@ if __name__ == '__main__':
     batch_size = 128
     epochs = args.epochs
 
-    # batch_size = 512
     lr = args.lr
     DS = args.DS
     # a = args.a
-    path = osp.join(osp.dirname(osp.realpath(__file__)), '.', 'data', DS)
+    # path = osp.join(osp.dirname(osp.realpath(__file__)), '.', 'data', DS)
+    path = os.path.join('/disk_195a/qiannnhui/data', DS)
     # kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=None)
 
     dataset = TUDataset(path, name=DS, aug=args.aug).shuffle()
@@ -318,6 +318,10 @@ if __name__ == '__main__':
     p = np.array(p)
     mean.append(p.mean())
     std.append(p.std())
+
+    if not os.path.exists("./logs"):
+        os.makedirs("./logs")
+
     with open('logs/log_' + args.DS + '_' + str(args.epochs)  + '_' + str(
             args.num_gc_layers), 'a+') as f:
         s = json.dumps([mean,std])

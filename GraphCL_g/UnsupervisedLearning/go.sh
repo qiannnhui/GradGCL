@@ -6,4 +6,4 @@
 
 #done
 
-CUDA_VISIBLE_DEVICES=$1 python gsimclr.py --DS $2 --lr 0.01 --local --num-gc-layers 3 --aug $3 --a $4
+CUDA_VISIBLE_DEVICES=$1 python gsimclr_g.py --DS $2 --lr 0.01 --local --num-gc-layers 3 --aug random2 --a 0.5
