@@ -29,6 +29,7 @@ import pdb
 import os
 from multiprocessing import cpu_count
 from check_dim_collapse import check_dimensional_collapse
+from ortho_loss import l2_reg_ortho
 
 
 class GcnInfomax(nn.Module):
@@ -240,6 +241,7 @@ def my(args, a):
                     loss = (1 - a) * lossf + a * lossg
                 #print(loss)
                 loss_all += loss.item() * data.num_graphs
+                # loss_all += ordecay * l2_reg_ortho(model)
                 loss.backward()
                 optimizer.step()
 
@@ -274,6 +276,7 @@ if __name__ == '__main__':
     # a = args.a
     # path = osp.join(osp.dirname(osp.realpath(__file__)), '.', 'data', DS)
     path = os.path.join('/disk_195a/qiannnhui/data', DS)
+    ordecay = args.ordecay
     # kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=None)
 
     dataset = TUDataset(path, name=DS, aug=args.aug).shuffle()

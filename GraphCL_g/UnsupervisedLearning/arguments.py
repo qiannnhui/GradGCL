@@ -25,6 +25,7 @@ def arg_parse():
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--log_interval', type=int, default=20)
+    parser.add_argument('--ordecay', type=float, default=1.0)
 
     parser.add_argument('--a', dest='a', type=float,
                         help='Gradient loss weight')
